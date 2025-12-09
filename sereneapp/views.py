@@ -95,7 +95,6 @@ def depression_predict(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
-
 from sereneapp.adhd_encoding import ADHD_ENCODING
 
 gender_map = {
@@ -103,15 +102,17 @@ gender_map = {
     "Female": 1,
     "Other": 2
 }
+
 @api_view(['POST'])
 def adhd_predict(request):
 
     try:
-        # ML FILE PATHS
-        model_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/adhd_model.pkl")
-        scaler_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/scaler.pkl")
-        gender_encoder_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/gender_encoder.pkl")
+        # ML FILE PATHS (UPDATED)
+        model_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/adhd_model1.pkl")
+        scaler_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/scaler1.pkl")
+        gender_encoder_path = os.path.join(settings.BASE_DIR, "sereneapp/ml_assets/gender_encoder1.pkl")
 
+        # Load ML components
         model = joblib.load(model_path)
         scaler = joblib.load(scaler_path)
         gender_encoder = joblib.load(gender_encoder_path)
@@ -119,7 +120,6 @@ def adhd_predict(request):
         data = request.data
 
         # Gender mapping
-        gender_map = {"Male": 0, "Female": 1, "Other": 2}
         gender_value = gender_map.get(data["gender"], 2)
 
         # Convert text → integer using ADHD_ENCODING
@@ -149,29 +149,33 @@ def adhd_predict(request):
             int(data["working_memory_score"])
         ]])
 
-        # Scale input
+        # Scale input features
         scaled_input = scaler.transform(input_features)
 
-        # Predict
+        # Predict ADHD using ML model
         prediction = model.predict(scaled_input)[0]
 
+        # Final output label
         adhd_result = "ADHD" if prediction == 1 else "No ADHD"
 
-        # Save to DB
+        # Data to save in DB
         save_data = {
             "user": data["user"],
             "age": data["age"],
             "gender": data["gender"],
             "sleep_hour_avg": data["sleep_hour_avg"],
+
             "easily_distracted": easily,
             "forgetful_daily_tasks": forget,
             "poor_organization": poor_org,
             "difficulty_sustaining_attention": diff,
             "restlessness": restless,
             "impulsivity_score": impulsive,
+
             "screen_time_daily": data["screen_time_daily"],
             "phone_unlocks_per_day": data["phone_unlocks_per_day"],
             "working_memory_score": data["working_memory_score"],
+
             "symptom_score": symptom_score,
             "adhd_result": adhd_result,
         }

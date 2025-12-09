@@ -1,3 +1,4 @@
+#adhd_encoding.py
 ADHD_ENCODING = {
     "never": 0,
     "mild": 1,
@@ -7,3 +8,4 @@ ADHD_ENCODING = {
     "very often": 3,
     "severe": 3
 }
+
